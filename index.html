@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jump & Survive</title>
+  <style>
+    #btn1, #btn2, #start {
+      position: absolute;
+      width: 11vh;
+      height: 7vh;
+      background-color: maroon;
+      color: white;
+    }
+    #Restart {
+      position: absolute;
+      width: 11vh;
+      height: 7vh;
+      background-color: maroon;
+      color: white;
+    }
+    #btn1 { bottom: 1vh; left: 1vh; }
+    #btn2 { bottom: 1vh; right: 10vh; }
+    #start { bottom: 51vh; right: 24vh; }
+    #score { position: absolute; top: 1vh; right: 1vh; }
+    #Restart { position: absolute; bottom: 51vh; right: 24vh; visibility: hidden; }
+  </style>
+</head>
+<body>
+
+  <button id="start">Start</button>
+  <button id="btn1">></button>
+  <button id="btn2">Jump</button>
+  <audio id="GameOver" src="seagullhit.ogg"></audio>
+  <button id="Restart" onclick="Reset()">Restart</button>
+  <h1 id="score">Score : 0</h1>
+
+  <script src="https://unpkg.com/kaboom@3000.0.0-beta.5/dist/kaboom.js"></script>
+  <script>
+    kaboom({
+      background: [210, 210, 255],
+      font: "sink"
+    });
+
+    loadSprite("player", "player.png");
+
+    // Global game variables
+    let player;
+    let isGameOver = false;
+    let JUMPCOUNT = 0;
+    let score = 0;
+
+    const SPEED = 560;
+    let ESPEED = 162;
+    const JUMPFORCE = 800;
+    const GRAVITY = 1600;
+    const PLATFORM_HEIGHT = 56;
+    const MAX_JUMP = 2;
+
+    setGravity(GRAVITY);
+
+    scene("game", () => {
+      isGameOver = false;
+      score = 0;
+      JUMPCOUNT = 0;
+      document.getElementById("score").innerText = "Score : 0";
+
+      player = add([
+        sprite("player"),
+        pos(10, height() - PLATFORM_HEIGHT - 90),
+        scale(0.10),
+        area(),
+        body(),
+        "player"
+      ]);
+
+      add([
+        rect(width(), PLATFORM_HEIGHT),
+        pos(0, height() - PLATFORM_HEIGHT),
+        color(100, 200, 100),
+        area(),
+        body({ isStatic: true })
+      ]);
+
+      const scoreBox = add([
+        rect(25, 35),
+        pos(5, 453),
+        scale(1),
+        area(),
+        opacity(0),
+        "Score"
+      ]);
+
+      const enemyLoop = loop(4, () => {
+        if (isGameOver) return;
+
+        const enemy = add([
+          rect(25, 35),
+          pos(400, 453),
+          scale(1),
+          area(),
+          "enemy"
+        ]);
+
+        enemy.onUpdate(() => {
+          enemy.move(-ESPEED, 0);
+        });
+
+        enemy.onCollide("player", () => {
+          if (!isGameOver) {
+            destroy(player);
+            isGameOver = true;
+            addKaboom(player.pos);
+            document.getElementById("GameOver").play();
+            console.log("Collision successful");
+            document.getElementById("Restart").style.visibility = "visible";
+          }
+        });
+
+        scoreBox.onCollide("enemy", () => {
+          if (!isGameOver) {
+            score++;
+            ESPEED += 1.21
+            document.getElementById("score").innerText = "Score : " + score;
+          }
+        });
+      });
+
+      player.onUpdate(() => {
+        if (player.isGrounded()) JUMPCOUNT = 0;
+        if (player.pos.y > height() + 100) {
+          player.pos = vec2(80, height() - PLATFORM_HEIGHT - 100);
+          player.jump(JUMPFORCE / 2);
+        }
+      });
+    });
+
+    // Button Functions
+    function Reset(){
+      go("game")
+      document.getElementById("Restart").style.visibility = "hidden";
+    }
+    function startGame() {
+      go("game")
+      document.getElementById("start").style.visibility = "hidden";
+    }
+
+    function right() {
+      if (!isGameOver && player) {
+        player.move(SPEED, 0);
+      }
+    }
+
+    function jump() {
+      if (!isGameOver && player && JUMPCOUNT < MAX_JUMP) {
+        player.jump(JUMPFORCE);
+        JUMPCOUNT++;
+      }
+    }
+
+    // Connect buttons to functions
+    document.getElementById("start").onclick = startGame;
+    document.getElementById("btn1").onclick = right;
+    document.getElementById("btn2").onclick = jump;
+  </script>
+</body>
+</html>
