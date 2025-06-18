@@ -2,76 +2,148 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Voice Assistant</title>
+  <title>Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background: #0d1117;
-      color: #f0f0f0;
-      font-family: 'Segoe UI', sans-serif;
+      background-color: black;
+    }
+
+    .header {
+      color: red;
       text-align: center;
-      padding: 50px;
+      transition: color 0.8s ease;
+      padding-top: 0.1vh;
     }
-    button {
-      background: #1f6feb;
-      color: white;
-      border: none;
-      padding: 15px 25px;
-      font-size: 18px;
-      border-radius: 10px;
-      cursor: pointer;
+
+    .header:hover {
+      color: green;
     }
-    #output {
-      margin-top: 30px;
-      font-size: 20px;
+
+    #row1, #row2, #row3, #row4 {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.54vh 0vh 0.1vh 0vh;
+    }
+
+    .btn {
+      width: 9.8vh;
+      height: 7.5vh;
+      background: linear-gradient(to right bottom,red,blue); /* soft purple-pink */
+      color: white;            /* deep teal text */
+      margin-left: 0.79vh;
+      border: 0.19vh solid rgb(150,225,220);
+      border-radius: 0.74vh;
+    }
+
+    #input {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0vh 0vh 5.1vh 0vh;
+    }
+
+    #inputbox {
+      width: 38vh;
+      height: 5.9vh;
+    }
+
+    .btn:active {
+      background: linear-gradient(to right bottom,blue,red);
+      color: black;
+    }
+    #btn_recog {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 6vh;
+    }
+    #Recog_voice {
+      background-color: maroon;
+      color: green;
     }
   </style>
 </head>
 <body>
-
-  <h1>🎙️ Voice AI Assistant</h1>
-  <button onclick="startListening()">🎤 Speak</button>
-  <div id="output"></div>
+  <h1 class="header">Calculator</h1>
+  <div id="input">
+    <input type="text" id="inputbox" placeholder="Calculator">
+  </div>
+  <div id="row1">
+    <button class="btn">9</button>
+    <button class="btn">8</button>
+    <button class="btn">7</button>
+    <button class="btn">/</button>
+  </div>
+  <div id="row2">
+    <button class="btn">6</button>
+    <button class="btn">5</button>
+    <button class="btn">4</button>
+    <button class="btn">*</button>
+  </div>
+  <div id="row3">
+    <button class="btn">3</button>
+    <button class="btn">2</button>
+    <button class="btn">1</button>
+    <button class="btn">-</button>
+  </div>
+  <div id="row4">
+    <button class="btn">C</button>
+    <button class="btn">0</button>
+    <button class="btn">=</button>
+    <button class="btn">+</button>
+  </div>
+  <div id="btn_recog">
+    <button onclick="Recognition()" id="Recog_voice">speak</button>
+  </div>
 
   <script>
-    const output = document.getElementById("output");
-
-    function speak(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      speechSynthesis.speak(utterance);
-    }
-
-    function startListening() {
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = "en-US";
-      recognition.start();
-
-      recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript.toLowerCase();
-        output.innerText = "You said: " + transcript;
-
-        if (transcript.includes("time")) {
-          const time = new Date().toLocaleTimeString();
-          speak("The current time is " + time);
-        } else if (transcript.includes("google")) {
-          speak("Opening Google");
-          window.open("https://www.google.com", "_blank");
-        } else if (transcript.includes("joke")) {
-          speak("Why did the computer go to the doctor? Because it had a virus!");
-        } else if (transcript.includes("background")) {
-          document.body.style.background = "#" + Math.floor(Math.random()*16777215).toString(16);
-          speak("Background changed");
-        } else {
-          speak("Sorry, I didn’t understand that.");
+    const inputbox = document.querySelector("#inputbox");
+    const buttons = document.querySelectorAll(".btn");
+    function Recognition() {
+      if('SpeechRecognition' in window  || 'webkitSpeechRecognition' in window) {
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+        recognition.start()
+        recognition.onresult = function(event) {
+          let transcript = event.results[0][0].transcript.toLowerCase();
+          transcript = transcript.replace(/plus/g,"+")
+          .replace(/minus/g,"-")
+          .replace(/times|multiplied by/g,"*")
+          .replace(/divide|divided by/g,"/")
+          .replace(/into/g,"*");
+          inputbox.value = transcript
+          try {
+            let result = eval(transcript)
+            inputbox.value = result
+            const utter = new SpeechSynthesisUtterance("The result is" + result);
+            speechSynthesis.speak(utter);
+          } catch {
+            inputbox.value = "Error";
+          };
         }
-      };
-
-      recognition.onerror = function(err) {
-        output.innerText = "Error: " + err.error;
-        speak("There was an error. Please try again.");
-      };
-    }
+      } else {
+        console.log("You cant use")
+        alert("Sorry but recognition not supported")
+      }
+    };
+    buttons.forEach(button => {
+      button.addEventListener("click", () => {
+        const value = button.textContent;
+        if (value === "C") {
+          inputbox.value = "";
+        } else if (value === "=") {
+          try {
+            inputbox.value = eval(inputbox.value);
+          } catch {
+            inputbox.value = "Error";
+          }
+        } else {
+          inputbox.value += value;
+        }
+      });
+    });
   </script>
-
 </body>
 </html>
