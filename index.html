@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Calculator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
       background-color: black;
@@ -62,6 +63,8 @@
     #Recog_voice {
       background-color: maroon;
       color: green;
+      width: 12vh;
+      height: 5.2vh;
     }
   </style>
 </head>
@@ -95,7 +98,9 @@
     <button class="btn">+</button>
   </div>
   <div id="btn_recog">
-    <button onclick="Recognition()" id="Recog_voice">speak</button>
+    <button onclick="Recognition()" id="Recog_voice">speak
+    <i class="fas fa-microphone"></i>
+    </button>
   </div>
 
   <script>
@@ -112,7 +117,10 @@
           .replace(/minus/g,"-")
           .replace(/times|multiplied by/g,"*")
           .replace(/divide|divided by/g,"/")
-          .replace(/into/g,"*");
+          .replace(/into/g,"*")
+          .replace(/power of|raised to/g,"**")
+          .replace(/point/g,".")
+          .replace(/percent/g,"/100");
           inputbox.value = transcript
           try {
             let result = eval(transcript)
@@ -122,7 +130,6 @@
             speechSynthesis.speak(utter);
           } catch {
             inputbox.value = "Error";
-            alert("Some error occured")
           };
         }
       } else {
