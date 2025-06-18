@@ -118,6 +118,7 @@
             let result = eval(transcript)
             inputbox.value = result
             const utter = new SpeechSynthesisUtterance("The result is" + result);
+            utter.volume = 0.5;
             speechSynthesis.speak(utter);
           } catch {
             inputbox.value = "Error";
