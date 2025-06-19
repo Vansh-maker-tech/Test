@@ -143,6 +143,8 @@
             inputbox.value = result
             const utter = new SpeechSynthesisUtterance("The result is" + result);
             utter.volume = 1;
+            utter.pitch = 1;
+            utter.rate = 1;
             speechSynthesis.speak(utter);
           } catch {
             inputbox.value = "Error";
